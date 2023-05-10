@@ -5,4 +5,4 @@ Potential water-water = Two Scale Potential
 Potential water-alcohol = Lennard-Jones
 Potential alcohol-alcohol = WCA
 
-Results: https://drive.google.com/drive/folders/1fFLjlN7na15uwwDoZ-oLLmNPFDoquMK8?usp=share_link
+Results: https://drive.google.com/drive/folders/1fH0hooYVEq16TT1lr9XUoeHlccrqDRGK?usp=share_link
