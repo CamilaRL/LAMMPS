@@ -1,0 +1,59 @@
+# water spc model
+
+# ---------- Inicializando a simulação ---------------------
+units           lj                             #comprimentos (sigma), tempo (sigma,m,epsilon)), temp (epsilonkB) = comando define as unidades usadas na simulação
+atom_style      full                           #considera moléculas com cargas
+dimension       3
+boundary        p p p                          #condições de contorno periódica.
+
+# ---------- Criando os átomos ---------------------
+
+read_data init.syst  #(Leitura do arquivo de topologia)
+
+## alternate way to set charges - besides manually in data file ###
+group ox type 2
+group hy type 1
+set group ox charge -0.8476
+set group hy charge 0.4238
+
+velocity all create 1.0 12345689 dist uniform  # define temperatura e seed do gerador de velocidade
+
+
+# ---------- Definindo a interação interatômica ---------------------
+
+### Flexible SPC/E Potential Parameters ###
+### Zhang et al., Fluid Phase Equilibria, 262 (2007) 210-216 ###
+
+pair_style lj/cut/coul/long 10.0
+pair_coeff 2 2 0.1502629 3.1169
+pair_coeff 1 2 0.0341116368 2.04845
+pair_coeff 1 1 0.00774378 0.98
+
+bond_style  harmonic
+bond_coeff  1 176.864 0.9611
+
+angle_style harmonic
+angle_coeff 1 42.1845 109.4712
+
+kspace_style pppm 1.0e-5 
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 10 check yes
+
+# ---------- Ensemble ---------------------
+
+fix 2 all npt temp 298.0 298.0 100.0 iso 1.0 1.0 100.0 # 0.60 0.60 100.0 iso 0.5 0.5 100.0
+
+
+#---------- Função de distribuição radial ---------------------
+
+compute myRDF all rdf 500 1 1 1 2 2 2
+fix 3 all ave/time 2 100 5000 c_myRDF[*] file zhang.rdf mode vector
+
+dump waterdump all atom 5000 dump.lammpstrj
+
+thermo_style    custom step temp press vol #especifica variáveis impressas no arquivo de log (ele contém toda a informação do sistema)
+thermo_modify norm no flush yes
+thermo          100                                     #a cada 2000 passos imprime valores acima
+timestep        0.01
+run             200000                                 #número de passos da simulação
