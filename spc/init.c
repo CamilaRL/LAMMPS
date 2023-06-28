@@ -17,21 +17,21 @@ void main(){
     float mol[3][4];
 
     // CAIXA DE SIMULACAO
-    double x = 0.1, y= 0.1, z = 0.1; // coordenadas das particulas
-    double lx = 40, ly = 40, lz = 40; // dimensoes da caixa
-    double lx0 = -5, ly0 = -5, lz0 = -5; // dimensoes da caixa
+//    double x = 0.1, y= 0.1, z = 0.1; // coordenadas das particulas
+//    double lx = 40, ly = 40, lz = 40; // dimensoes da caixa
+//    double lx0 = -5, ly0 = -5, lz0 = -5; // dimensoes da caixa
 
     //double lx = 44.165558, ly = 47.066074, lz = 44.193867; // dimensoes da caixa
     //double lx0 = -0.75694412, ly0 = 0.38127473, lz0 = 0.17900842; // dimensoes da caixa
 
 
-    double rho = N/(lx*ly*lz);
+    double rho = 0.8;
     double rho_l = cbrt(rho);
-    int Nx = round(rho_l*lx);
-    int Ny = round(rho_l*ly);
-    int Nz = round(rho_l*lz);
     int n3 = ceil(cbrt(N))-1;
     double espaco = 1/rho_l;
+	
+	double x = 0.1, y= 0.1, z = 0.1; 
+	double lx = ly = lz = cbrt(N/rho);
 
     float dist = 1;
     int i = 0, j = 0, k = 0;
@@ -81,6 +81,7 @@ void main(){
         a = 1;
     }
 
+	// Atomic Position
     int p = 0;
     for(int n = 1 ; n <= N ; n++){
 
@@ -107,10 +108,9 @@ void main(){
         }
     }
 
-
+	// Bonds
     fprintf(arq_Init, "\nBonds\n\n");
     int b = 1;
-
 
     for(int a = 1 ; a <= bonds; a = a + 2){
 
@@ -119,6 +119,7 @@ void main(){
         b = b + 3;
     }
 
+	// Angles
     fprintf(arq_Init, "\nAngles\n\n");
     b = 1;
 
@@ -130,57 +131,3 @@ void main(){
 
     fclose(arq_Init);
 }
-
-    /*
-    for(int n = 1 ; n <= N ; n++){
-        
-        x = i*espaco + 0.1;
-        y = j*espaco + 0.1;
-        z = k*espaco + 0.1;
-        
-        fprintf(arq_Init, "         %3d           %d           %d   %10.4f        %10.16f        %10.16f        %10.16f     \n", n, r, a, q, x, y, z);
-
-        i++;
-        if(i == n3){
-            i = 0;
-            j++;
-            if(j == n3){
-                j = 0;
-                k++;
-            }
-        }
-
-        if(mol_counter == 2){
-            // pois cada ligação tem 2 hidrogênios
-            a = 2;
-            q = -0.8476;
-            mol_counter++;
-        }
-        else if(mol_counter == 3){
-            a = 1;
-            q = 0.4238;
-            mol_counter = 1;
-            r++;
-        }
-        else{
-            mol_counter++;
-        }
-
-    // Cria 1 molécula
-    float dist = 1;
-    x = 0.1;
-    z = 0.1;
-    a = 2;
-    for(int n = 0 ;  n <= 2 ; n++){
-
-        y = n*dist + 0.1;
-
-        if(n == 2){
-            y = dist*cos(1.910632); // angulo entre moleculas é 109.4712
-            z = dist*sin(1.910632);
-        }
-
-        fprintf(arq_Init, "         %3d           %d           %d   %10.4f        %10.16f        %10.16f        %10.16f     \n", n, r, a, q, x, y, z);
-        a = 1;
-    }
-    */
