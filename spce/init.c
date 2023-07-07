@@ -2,92 +2,95 @@
 #include <stdlib.h>
 #include <math.h>
 
-// Inicialização para o modelo de água SPC
 
-void main(){
-    
-    //Variáveis
-    
-    // MOLECULAS
+void main(void){
+	
+	// DADOS DE MOLECULAS
     int N = 150; // total de particulas
     int bonds = 100;
     int angles = 50;
-    int a = 1; // atom 1 = hy ; atom 2 = ox
-    float q[2] = {0.4238, -0.8476};
-    float mol[3][4];
-
-    // CAIXA DE SIMULACAO
-//    double x = 0.1, y= 0.1, z = 0.1; // coordenadas das particulas
-//    double lx = 40, ly = 40, lz = 40; // dimensoes da caixa
-//    double lx0 = -5, ly0 = -5, lz0 = -5; // dimensoes da caixa
-
-    //double lx = 44.165558, ly = 47.066074, lz = 44.193867; // dimensoes da caixa
-    //double lx0 = -0.75694412, ly0 = 0.38127473, lz0 = 0.17900842; // dimensoes da caixa
-
-
-    double rho = 0.8;
-    double rho_l = cbrt(rho);
-    int n3 = ceil(cbrt(N))-1;
-    double espaco = 1/rho_l;
+	int Nmol = (int) N/3; // numero de moleculas
 	
-	double x = 0.1, y= 0.1, z = 0.1; 
-	double lx = ly = lz = cbrt(N/rho);
+	double q[2] = {0.4238, -0.8476}; // carga do hidrogenio e oxigenio (respectivamente)
+	double m[2] = {1.007, 15.999}; // massa do hidrogenio e oxigenio (respectivamente)
+	float theta = 1.910632; // angulo entre moleculas é 109.4712
 
-    float dist = 1;
-    int i = 0, j = 0, k = 0;
-
-    int mol_counter = 1;
-    int r = 1;
-    
-    
-    // Arquivos para impressão
+	
+	// TAMNHO DA CAIXA
+	double rho = 0.853; //
+	double l_box = cbrt(N*(2*m[0] + m[1])/rho); // lateral para caber todas as moleculas
+	double n3 = ceil(cbrt(Nmol));
+	double space = l_box/(n3);
+	//double space = l_box/(n3) + 1.6;
+	//l_box = n3*space;
+	
+	double rhocalc = N/pow(l_box, 3);
+	
+	printf("\nDensidade Total Calculada: %f\n", rhocalc);
+	printf("Densidade Total Definida: %f\n", rho);
+    //printf("Numero de particulas: %f\n", N);
+	printf("Dimensão da caixa: %f\n", l_box);
+	printf("Partículas por linha: %f\n", n3);
+    printf("Distancias entre particulas: %f\n", space);
+	
+	
+	// Arquivos para impressão
     FILE *arq_Init;
     arq_Init = fopen("init.syst", "w");
     
     fprintf(arq_Init, "#LAMMPS SPC-WATER\n");
     fprintf(arq_Init, "        \n%d atoms        \n%d bonds        \n%d angles", N, bonds, angles);
     fprintf(arq_Init, "           \n2 atom types           \n1 bond types           \n1 angle types\n");
-    
-    fprintf(arq_Init, "0.0   %.1f   xlo xhi\n0.0   %.1f   ylo yhi\n0.0   %.1f   zlo zhi\n\n", lx, ly, lz);
-    
+    fprintf(arq_Init, "0.0   %.1f   xlo xhi\n0.0   %.1f   ylo yhi\n0.0   %.1f   zlo zhi\n\n", l_box, l_box, l_box);
     fprintf(arq_Init, "Masses\n\n     1  1.0079401\n     2  15.999400\n\n");
-    
     fprintf(arq_Init, "Atoms\n\n");
-    
-    printf("Densidade Total: %f\n", rho);
-    printf("Densidade Lateral: %f\n", rho_l);
-    printf("Numero de particulas: x = %d y = %d z = %d sum = %d\n", Nx, Ny, Nz, Nx*Ny*Nz);
-    printf("Distancias entre particulas: %f\n", espaco);
 
 
-    // Cria 1 molécula
-    a = 2;
+	// Cria 1 molécula
+	
+	double d = 1.; // distancia O-H
+	int a = 2; // atom 1 = hy ; atom 2 = ox
+    double mol[3][4]; // [id do atomo][0:tipo de atomo | 1:x | 2:y | 3:z ]
+	double rmol = d + 0.1;
+	
+	double x = rmol, y = rmol, z = rmol;
+	
     for(int n = 0 ;  n <= 2 ; n++){
 
         mol[n][0] = a; //guarda o tipo de partícula
 
-        y = n*dist + 0.1;
+        y = (n+1)*d + 0.1;
         
         if(n == 2){
-            y = dist*cos(1.910632); // angulo entre moleculas é 109.4712
-            z = dist*sin(1.910632);
+            y = rmol + d*cos(theta);
+            z = rmol + d*sin(theta);
         }
 
         // guarda as posições
         mol[n][1] = x;
         mol[n][2] = y;
         mol[n][3] = z;
+		//printf("%d %f %f %f\n", a, x, y, z);
 
         a = 1;
     }
+	
 
 	// Atomic Position
+	
     int p = 0;
+	int r = 1;
+	int i = 0, j = 0, k = 0;
+    int mol_counter = 1;
+	
     for(int n = 1 ; n <= N ; n++){
 
-        x = mol[p][1] + i*(dist + espaco);
-        y = mol[p][2] + j*(dist + espaco);
-        z = mol[p][3] + k*(dist + espaco);
+        //x = mol[p][1] + i*(l + space);
+        //y = mol[p][2] + j*(l + space);
+        //z = mol[p][3] + k*(l + space);
+		x = mol[p][1] + i*(space);
+        y = mol[p][2] + j*(space);
+        z = mol[p][3] + k*(space);
 
         fprintf(arq_Init, "         %3d           %d           %d   %10.4f        %10.16f        %10.16f        %10.16f     \n", n, r, (int) mol[p][0], q[((int) mol[p][0]) - 1], x, y, z);
 
@@ -130,4 +133,7 @@ void main(){
     }
 
     fclose(arq_Init);
+//double space = 1/cbrt(rho); // 1/densidade lateral
+	//double l_box = cbrt(N*(2*m[0] + m[1])/rho);
 }
+
