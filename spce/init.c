@@ -4,34 +4,35 @@
 
 
 void main(void){
+	double avogadro = 6.022*pow(10, 23);
 	
 	// DADOS DE MOLECULAS
-    int N = 150; // total de particulas
-    int bonds = 100;
-    int angles = 50;
-	int Nmol = (int) N/3; // numero de moleculas
+	int N = 300; // total de particulas
+	int Nmol = (int) N/3; //numero de moleculas
+	int bonds = Nmol*2;
+	int angles = Nmol;
 	
 	double q[2] = {0.4238, -0.8476}; // carga do hidrogenio e oxigenio (respectivamente)
-	double m[2] = {1.007, 15.999}; // massa do hidrogenio e oxigenio (respectivamente)
+	double m[2] = {1.0079401, 15.999400}; // massa do hidrogenio e oxigenio (respectivamente)
 	float theta = 1.910632; // angulo entre moleculas é 109.4712
-
+	
 	
 	// TAMNHO DA CAIXA
-	double rho = 0.853; //
-	double l_box = cbrt(N*(2*m[0] + m[1])/rho); // lateral para caber todas as moleculas
-	double n3 = ceil(cbrt(Nmol));
-	double space = l_box/(n3);
-	//double space = l_box/(n3) + 1.6;
-	//l_box = n3*space;
+	double rho = 1.05; // (g/cm^3)
+	double l_box = pow(10,8) * cbrt(Nmol * (2 * m[0] + m[1])/(rho * avogadro)); // (cm) lateral para caber todas as moleculas
+
+	int n3 = ceil(cbrt(Nmol));
+	double space = l_box/(n3); //(cm)
 	
-	double rhocalc = N/pow(l_box, 3);
+	
+	double rhocalc = pow(10, 24) * Nmol * (2 * m[0] + m[1]) / (avogadro * pow(l_box, 3));
 	
 	printf("\nDensidade Total Calculada: %f\n", rhocalc);
 	printf("Densidade Total Definida: %f\n", rho);
-    //printf("Numero de particulas: %f\n", N);
+	printf("Numero de particulas: %d\n", N);
 	printf("Dimensão da caixa: %f\n", l_box);
-	printf("Partículas por linha: %f\n", n3);
-    printf("Distancias entre particulas: %f\n", space);
+	printf("Partículas por linha: %d\n", n3);
+	printf("Distancias entre particulas: %f\n", space);
 	
 	
 	// Arquivos para impressão
@@ -133,7 +134,5 @@ void main(void){
     }
 
     fclose(arq_Init);
-//double space = 1/cbrt(rho); // 1/densidade lateral
-	//double l_box = cbrt(N*(2*m[0] + m[1])/rho);
 }
 
