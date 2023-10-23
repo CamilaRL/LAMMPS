@@ -25,6 +25,8 @@ class H20:
         self.O = idO
         self.H1 = idH1
         self.H2 = idH2
+        self.bonds = np.zeros(Nmol)
+        self.viz = []
         
         self.xcm = ((atomList[idO-1].x)*15.999 + (atomList[idH1-1].x)*1.008 + (atomList[idH2-1].x)*1.008)/(2*1.008 + 15.999)
         self.ycm = ((atomList[idO-1].y)*15.999 + (atomList[idH1-1].y)*1.008 + (atomList[idH2-1].y)*1.008)/(2*1.008 + 15.999)
@@ -117,11 +119,9 @@ def ReadDumpFile(filename):
 def BoundaryCondition(df):
 
     bc = lbox/2
-    b = 0
 
     if(df > bc):
         df = df - bc
-        b = 1
         
     return df
 
@@ -171,7 +171,9 @@ def Bond_Condition():
                     if(cosbeta < ((3**(1/2))/2)): # cos(30) = (3**(1/2))/2
                         countBond = countBond + 1
                         
-                        
+                        # atualiza lista de ligações
+                        molList[i].bonds[j] = 1
+                        molList[j].bonds[i] = 1
                         
                         bondList.append([[molList[i].xcm, molList[j].xcm], [molList[i].ycm, molList[j].ycm], [molList[i].zcm, molList[j].zcm]])
     print(countBond)
@@ -208,14 +210,75 @@ def Plot_Bonds2D(xm, ym, zm):
     plt.tight_layout()
     plt.show()
 
+def viz():
 
+    rc = 10
+    
+    for i in range(len(molList)):
+        for j in range(i+1, len(molList)):
+            
+            dx = abs(molList[i].xcm - molList[j].xcm)
+            dy = abs(molList[i].ycm - molList[j].ycm)
+            dz = abs(molList[i].zcm - molList[j].zcm)
+            
+            if((dx < rc) and (dy < rc) and (dz < rc)):
+            
+                rij = (dx**2 + dy**2 + dz**2)**(1/2)
+                
+                if (rij <= rc):
+                    molList[i].viz.append(j)
+                    molList[j].viz.append(i)
+    
+    
+def ClusterCoeffi(i):
+    
+    sum_ki = 0
+    Ei = 0
+    ki = len(molList[i].viz)
+    
+    for j in range(Nmol):
+        
+        if(molList[i].bonds[j] == 1):
+        
+            for k in molList[i].viz:
+                sum_ki = sum_ki + molList[j].bonds[k]
+                
+            Ei = Ei + sum_ki
+            sum_ki = 0
+            
+            
+    Ci = (2*Ei)/(ki*(ki-1))
+    
+    return Ci
+    
+def ClusterCoeffRand():
 
-global atomList, molList, bondList, lbox
+    k = 0
+    klist = []
+    
+    for m in molList:
+    
+        kisum = sum(m.bonds) # grau do nodo
+        klist.append(kisum)
+        
+        k = k + kisum # soma do grau de cada nodo (molecula)
+
+    k = k/Nmol
+
+    Crand = k/Nmol
+    
+    return Crand, k, klist
+    
+    
+#################### MAIN ####################
+
+global atomList, molList, bondList, lbox, Nmol
 
 atomList = []
 molList = []
 bondList = []
 lbox = 14.2
+Nmol = 100
 
 xMol, yMol, zMol = ReadInitFile('./init.syst')
 
@@ -227,3 +290,21 @@ xMol, yMol, zMol = ReadDumpFile('./implicit/3dumpT300.lammpstrj')
 
 Bond_Condition()
 Plot_Bonds2D(xMol, yMol, zMol)
+
+viz()
+
+Crand, kavg, klist = ClusterCoeffRand()
+C = 0
+for i in range(len(molList)):
+    Ci = ClusterCoeffi(i)
+    
+    C = C + Ci
+    
+C = C/Nmol
+
+print(f'C: {C} Crand: {Crand} Ci/Crand: {C/Crand} <k>: {kavg}')
+
+plt.hist(klist, density=True)
+plt.ylabel('p(k)')
+plt.xlabel('k')
+plt.show()
