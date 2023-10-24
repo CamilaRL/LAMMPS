@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 class Atom:
@@ -119,15 +120,20 @@ def ReadDumpFile(filename):
 def BoundaryCondition(df):
 
     bc = lbox/2
-
     if(df > bc):
-        df = df - bc
+        df = df - math.floor(df/(lbox/2))*lbox
+    
+
+    '''if(df > bc):
+        df = df - bc'''
         
     return df
 
     
 def Bond_Condition():
+
     countBond = 0
+
     for i in range(len(molList)):
         for j in range(i+1, len(molList)):
         
@@ -148,7 +154,7 @@ def Bond_Condition():
             
             R = (dx**2 + dy**2 + dz**2)**(1/2)
             
-            if((R <= 3.5) and (R > 0.1)):
+            if((R <= 3.5)):
                 #calcula ângulo:
                 
                 for k in range(2):
@@ -168,7 +174,7 @@ def Bond_Condition():
                    
                     cosbeta = (R**2 + d**2 - r**2)/(2*R*d)
 
-                    if(cosbeta < ((3**(1/2))/2)): # cos(30) = (3**(1/2))/2
+                    if(cosbeta <= ((3**(1/2))/2)): # cos(30) = (3**(1/2))/2
                         countBond = countBond + 1
                         
                         # atualiza lista de ligações
@@ -210,6 +216,16 @@ def Plot_Bonds2D(xm, ym, zm):
     plt.tight_layout()
     plt.show()
 
+def plotBond(xm, ym, zm):
+    i = 2
+    plt.scatter(xm, ym)
+    plt.plot(bondList[i][0], bondList[i][1], color='black')
+    plt.show()
+    
+    r = (np.diff(bondList[i][0])**2 + np.diff(bondList[i][1])**2)**(1/2)
+    
+    print(r)
+
 def viz():
 
     rc = 10
@@ -228,7 +244,6 @@ def viz():
                 if (rij <= rc):
                     molList[i].viz.append(j)
                     molList[j].viz.append(i)
-    
     
 def ClusterCoeffi(i):
     
@@ -286,20 +301,26 @@ Bond_Condition()
 #Plot_Bonds2D(xMol, yMol, zMol)
 bondList = []
 
-xMol, yMol, zMol = ReadDumpFile('./implicit/3dumpT300.lammpstrj')
+xMol, yMol, zMol = ReadDumpFile('./implicit/0dumpT650.lammpstrj')
 
 Bond_Condition()
+
 Plot_Bonds2D(xMol, yMol, zMol)
 
 viz()
+for i in range(len(molList)):
+
+    s = sum(molList[i].bonds)
+    if (s == 0):
+        print(i)
+        print(molList[i].bonds)
 
 Crand, kavg, klist = ClusterCoeffRand()
+
 C = 0
 for i in range(len(molList)):
     Ci = ClusterCoeffi(i)
-    
     C = C + Ci
-    
 C = C/Nmol
 
 print(f'C: {C} Crand: {Crand} Ci/Crand: {C/Crand} <k>: {kavg}')
