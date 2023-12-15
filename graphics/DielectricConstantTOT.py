@@ -31,7 +31,7 @@ def read_DipoleData(filename):
 
         for i in range(len(lines)-3):
 
-            mux.append(float(lines[i].split(' ')[1])*angs*1.6*(10**-19))
+            mux.append(float(lines[i].split(' ')[1])*angs*1.6*(10**-19)) # C.m
             muy.append(float(lines[i+1].split(' ')[1])*angs*1.6*(10**-19))
             muz.append(float(lines[i+2].split(' ')[1])*angs*1.6*(10**-19))
 
@@ -70,16 +70,14 @@ def dielectric_constante(mu, V, T):
     time = len(mu)
 
     Mvar = (M2/time) - (Mmean/time)**2
-    
-    #e = 1 + (Mvar)/(3*e0*kB*V*T)
-    #e = 1 + (4*np.pi*Mvar)/(3*kB*V*T)
+
     e = 1 + (4*np.pi*Mvar)/(3*e0*kB*V*T)
     
     print(f'{T} {e}')
     
 def graph_M():
 
-    mu = np.loadtxt("./implicit/dipole.txt", unpack=True)
+    mu = np.loadtxt("./npt/dipole.txt", unpack=True)
 
     time = np.arange(len(mu))
 
@@ -93,35 +91,45 @@ def graph_M():
 
 def save_M(mu):
 
-    with open("./implicit/mu.txt", "a") as f:
+    with open("./npt/dipole.txt", "a") as f:
         
         for m in mu:
             f.write(f"{m}\n")
         
     f.close()
 
+
 global angs
 
+avogadro = 6.022*(10**23)
 angs = 10**(-10)
-lbox = 14.2*angs # m
-V = lbox**3
-T = 320
-i = 0
-
-mux, muy, muz = read_DipoleData(f'../../TIP4Pe/implicit/2dipoleMomentT{T}.sh')
-
-#mu = plot_Dipole(mux[i:], muy[i:], muz[i:], T)
-
-#save_M(mu)
-
-#dielectric_constante(mu, V, T)
-
-#tot_mu = graph_M()
-
-#dielectric_constante(tot_mu, V, T)
-
-
-plot_DielectricTemperature('./implicit/dielectric.txt')
 
 
 
+
+number_files = int(input('Número de arquivos analisados: '))
+
+for i in range(number_files):
+
+    file = input('Arquivo dipoleMoment.sh: ')
+    T = int(input('Temperatura: '))
+    Nmol = int(input('Número de partículas: '))
+    rho = float(input('Densidade Média: ')) #0.94213664 #g/cm^3
+    
+    lbox = (10**-2)*(Nmol * (2 * 1.008 + 15.99)/(rho * avogadro))**(1/3) # m
+    V = (lbox)**3
+    
+    if(i == 0):
+        mux, muy, muz = read_DipoleData(file)
+
+    if(i > 0):
+        mxaux, myaux, mzaux = extractData(file, linit, lfinal)
+        
+        mux = mux + mxaux
+        muy = muy + myaux
+        muz = muz + mzaux
+
+
+mu = plot_Dipole(mux[:], muy[:], muz[:], T)
+
+dielectric_constante(mu, V, T)
