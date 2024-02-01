@@ -70,8 +70,12 @@ def dielectric_constante(mu, V, T):
     time = len(mu)
 
     Mvar = (M2/time) - (Mmean/time)**2
+    #Mvar = (M2/time)
+    
+    print(M2/time)
+    print((Mmean/time)**2)
 
-    e = 1 + (4*np.pi*Mvar)/(3*e0*kB*V*T)
+    e = 1 + (4*np.pi*Mvar)/(3*e0*kB*V*T) #4*np.pi*
     
     print(f'{T} {e}')
     
@@ -113,9 +117,12 @@ for i in range(number_files):
 
     file = input('Arquivo dipoleMoment.sh: ')
     T = int(input('Temperatura: '))
-    Nmol = int(input('Número de partículas: '))
-    rho = float(input('Densidade Média: ')) #0.94213664 #g/cm^3
+    Nmol = int(input('Número de moléculas: '))
+    #V = float(input('Volume Médio: ')) # Angstrom = 10^-24 cm^3
     
+    #V = V*10**(-30) # m^3
+    
+    rho = float(input('Densidade Média: ')) #0.94213664 #g/cm^3
     lbox = (10**-2)*(Nmol * (2 * 1.008 + 15.99)/(rho * avogadro))**(1/3) # m
     V = (lbox)**3
     
@@ -123,7 +130,7 @@ for i in range(number_files):
         mux, muy, muz = read_DipoleData(file)
 
     if(i > 0):
-        mxaux, myaux, mzaux = extractData(file, linit, lfinal)
+        mxaux, myaux, mzaux = read_DipoleData(file)
         
         mux = mux + mxaux
         muy = muy + myaux
